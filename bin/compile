@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+set -e
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+ENV_DIR=$3
+
+BIN_PATH="$BUILD_DIR/bin"
+TMP_PATH="$BUILD_DIR/tmp"
+mkdir -p $CACHE_DIR $BIN_PATH $TMP_PATH
+
+if [[ -f "$ENV_DIR/TIFIG_VERSION" ]]; then
+  TIFIG_VERSION=$(cat "$ENV_DIR/TIFIG_VERSION")
+else
+  TIFIG_VERSION="0.2.2"
+fi
+
+TIFIG_URL="https://github.com/monostream/tifig/releases/download/${TIFIG_VERSION}/tifig-static-${TIFIG_VERSION}.tar.gz"
+TIFIG_TAR="$CACHE_DIR/tifig.tar.gz"
+TIFIG_BINARY="$TMP_PATH/tifig"
+
+BIN_DIR=$(cd $(dirname $0); pwd)
+
+if [ -f $TIFIG_TAR ]; then
+  echo "-----> Using TIFIG tar from cache"
+else
+  echo "-----> Downloading TIFIG tar"
+  curl -L $TIFIG_URL -o $TIFIG_TAR
+fi
+
+echo "-----> Unpacking tar"
+tar -xf $TIFIG_TAR -C $TMP_PATH
+
+echo "-----> Setting permissions"
+chmod +x $TIFIG_BINARY
+
+echo "-----> Moving binaries to the right place"
+mv $TIFIG_BINARY $BIN_PATH/
+
+echo "-----> Cleaning up"
+rm -rf $TMP_PATH
